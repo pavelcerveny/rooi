@@ -2,8 +2,6 @@
 
 namespace Rooi;
 
-use Rooi\DB;
-
 class DB_Query extends DB {
 
 	/**
@@ -36,9 +34,9 @@ class DB_Query extends DB {
 	*/
 	private $_orderBy = '';
 
-	public function __construct($dbhost, $dbname, $dbuser, $dbpass){
+	public function __construct($dbhost, $dbname, $dbuser, $dbpass, $dbtype = 'mysql'){
 
-		parent::__construct($dbhost, $dbname, $dbuser, $dbpass);
+		parent::__construct($dbhost, $dbname, $dbuser, $dbpass, $dbtype);
 
 	}
 

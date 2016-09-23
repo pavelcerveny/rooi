@@ -37,3 +37,40 @@
         $hello_obj->get_hello($param);
         
     });
+
+    require 'DB.php';
+    require 'DB_Query.php';
+
+    $db_query = new Rooi\DB_Query('127.0.0.1', 'test', 'user', '1234');
+
+
+    /* EXAMPLE */
+
+    /*
+	* Create table 'test' with 2 columns: 'id' (INT, AUTO_INCREMENT, PRIMARY), 'name' (VARCHAR)
+    */
+
+    // id = 1
+    $data = ['name' => 'Dan'];
+    $db_query->insert('test', $data);
+    // id = 2
+    $data2 = ['name' => 'Alex'];
+    $db_query->insert('test', $data2);
+
+    $update_data = ['name' => 'Tim'];
+    $db_query->update('test', $update_data, ['id', '=', 1 ]);
+
+
+    $select_data = $db_query->getAll('test');
+    var_dump($select_data['result']);
+
+    $db_query->where(['id', '=', 2 ])->whereAnd(['name', '=', 'Alex' ]);
+    $select_data = $db_query->get('test', ['name']);
+    var_dump($select_data['result']);
+
+    $db_query->delete('test', 'name', 'Tim');
+    $db_query->delete('test', 'name', 'Alex');
+
+    $select_data = $db_query->getAll('test');
+    var_dump($select_data['result']);
+

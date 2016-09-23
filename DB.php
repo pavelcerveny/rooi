@@ -1,6 +1,6 @@
 <?php
 
-namespace Rooi\DB;
+namespace Rooi;
 
 class DB {
 
@@ -53,25 +53,26 @@ class DB {
 	* @param string -> database type [pgsql, mysql]
 	* @return bool
 	*/
-	public function __construct($host, $name, $user, $pass, $dbtype = 'mysql'){
+	public function __construct($host, $dbname, $user, $pass, $dbtype = 'mysql'){
 
 		$this->_error = false;
 		$this->_error_msg = "";
 		
-		if (!empty($host) && !empty($name) && !empty($user) && !empty($pass) && !empty($dbtype)){
+		if (!empty($host) && !empty($dbname) && !empty($user) && !empty($pass) && !empty($dbtype)){
 
 			$this->_db_type = $dbtype;
 
-			$dsn = "{$dbtype}:host={$host};dbname={$name};user={$user};password={$pass}";
+			$dsn = "{$dbtype}:host={$host};dbname={$dbname};user={$user};password={$pass};charset=utf8";
 
 			try {
-				$this->conn = new PDO($dsn);
+				$this->conn = new \PDO($dsn);
 
 				// debuging options -> ATTR_ERRMODE, ERRMODE_EXCEPTION
-				$this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION); 
+				$this->conn->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION); 
 
-				// include czech symbols
-				$this->conn->exec("SET client_encoding = 'utf8'");
+				// utf-8
+				// prior to PHP v.5.3.6 this can be omit
+				$this->conn->exec("set names utf8");
 			}
 
 			catch (PDOException $e) {
@@ -154,11 +155,11 @@ class DB {
 
 
 			if ( $this->_query->rowCount() == 1 ){
-				$result = $this->_query->fetchAll(PDO::FETCH_ASSOC);
+				$result = $this->_query->fetchAll(\PDO::FETCH_ASSOC);
 				return ['result' => $result[0]];
 			}
 			else if ( $this->_query->rowCount() > 1 ){
-				return ['result' => $this->_query->fetchAll(PDO::FETCH_ASSOC), 'rowCount' => $this->_query->rowCount()];
+				return ['result' => $this->_query->fetchAll(\PDO::FETCH_ASSOC), 'rowCount' => $this->_query->rowCount()];
 			}
 			else {
 	            $this->_error = true;
@@ -182,7 +183,7 @@ class DB {
 
 				if ($type){
 					if ($type == 'int')
-						$this->_query->bindValue($x, $param, PDO::PARAM_INT);
+						$this->_query->bindValue($x, $param, \PDO::PARAM_INT);
 				}
 				else {
 					$this->_query->bindValue($x, $param);	
