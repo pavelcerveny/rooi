@@ -10,18 +10,18 @@ class Config {
 	private static $max_height = 600;
 
 	// url of the project
-	private static $HomeUrl="https://www.joomarket.eu/";
+	private static $HomeUrl="";
 
 	//setting jsonrpc gate
-	private static $projekt_api="joomarket.eu";
+	private static $projekt_api="";
 
-	private static $projekt_api_url="http://api.joomarket.eu/";
+	private static $projekt_api_url="";
 
-	private static $projekt_api_url_sec="https://api.joomarket.eu/";
+	private static $projekt_api_url_sec="";
 
-	private static $projekt_api_captcha_url="https://api.joobox.eu/captcha/";
+	private static $projekt_api_captcha_url="";
 	
-	private static $projekt_api_captcha_key="TU56!2@kjskL";
+	private static $projekt_api_captcha_key="";
 
 	private static $lang = '';
 
