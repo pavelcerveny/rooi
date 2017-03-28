@@ -1,59 +1,99 @@
 <?php
 
-abstract class API 
-{
-	use Guzzle;
-	use Parser;
+namespace Connect;
 
-	static protected $instances = array();
+use Guzzle\Client as HttpClient;
+use Latte\Engine as Latte;
+use Connect\Support as Support;
 
-    abstract protected function __construct();
+abstract class API {
 
-    public static function getInstance() {
-        $class = get_called_class();
-        if (! array_key_exists($class, self::$instances)) {
-            self::$instances[$class] = new $class();
-        }
-        return self::$instances[$class];
-    }
+	protected $cfgHttpClient = array();
 
-	public function send(){
-		
-		$this->guzzleSend();
+	/**
+	* @var string header|node|''
+	**/
+	protected $authType;
 
+	protected $authCredentials;
+
+	protected $requestString;
+
+	protected $latteTempDir;
+
+	protected $pathToLatteTemplates;
+
+	protected $response;
+
+	/**
+	* @var array [method:endpoint]
+	**/
+	protected $endpoints;
+
+	protected $decodedResponse;
+
+	/**
+	* only method to call them all
+	*/
+	abstract protected function handleMethod($method, $request);
+
+	protected fuction setHttpClientCfg($config) {
+		$this->cfgHttpClient = $config;
 	}
 
-	public function decodeResponse($response)
-	{
-		$this->parse($response);
-	}
-}
-
-interface IB
-{
-	public function GetAvail($data);
-
-
-}
-
-class B extends API implements IB
-{
-
-	public function GetAvailRQ($data){
-		// creates an xml object from data and latte
-		$this->send($object);
+	protected fuction getHttpClientCfg() {
+		return $this->cfgHttpClient;
 	}
 
-	public function GetAvailRS($response)
-	{
-
+	protected function setAuth($type, $credentials) {
+		$this->authType = $type;
+		$this->authCredentials = $credentials;
 	}
 
-	
-}
+	protected function getAuth() {
+		return ['type' => $this->authType, 'credentials' => $this->authCredentials];
+	}
 
-interface IFacade 
-{
-	public function getAvailability();
+	protected function setLatteCfg($pathToTemplates, $tempDir) {
+		$this->pathToLatteTemplates = $pathToTemplates;
+		$this->latteTempDir = $tempDir;
+	}
 
+	protected function setEndpoints($endpoints) {
+		$this->endpoints = $endpoints;
+	}
+
+	protected function renderRequest($method, $data) {
+		$latte = new Latte;
+		$latte->setTempDirectory($this->latteTempDir);
+		$request = $latte->renderToString("{$this->pathToLatteTemplates}/{$method}.latte", $data);
+		$this->renderRequest = $request;
+
+		return $this;
+	}
+
+	protected function send($method, $action = 'POST') {
+		$endpoint = $this->endpoints[$method];
+		$client = new HttpClient;
+
+		if (!empty($this->authType) && $this->authType === 'header') {
+			if (count($this->authCredentials !== 2)){
+				throw new \ApiException("Error Guzzle auth requires only 2 params", 1);
+				
+			}
+			$this->cfgHttpClient = array_merge($this->cfgHttpClient, ['auth' => [$this->authCredentials]]);
+		}
+
+		$response = $client->request($action, $endpoint, $this->cfgHttpClient, $this->renderRequest);
+		$this->response = (string) $response->getBody();
+		return $this;
+	}
+
+	protected function decode() {
+		return Support::parseXMLRecursive($this->response);
+	}
+
+	protected function execute($method, $data, $action) {
+		return $this->renderRequest($method, $data)->send($method, $action)->decode();
+	}
 }
